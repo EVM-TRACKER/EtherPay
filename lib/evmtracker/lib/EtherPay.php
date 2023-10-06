@@ -31,7 +31,7 @@ class EtherPay
         $sweb3->chainId = self::$chain_id;
 
         // Send from to
-        $sweb3->setPersonalData($sendParams['from'], $sendParams['private_key']);
+        $sweb3->setPersonalData($sendParams['from'], ltrim($sendParams['private_key'], "0x"));
         $sendParamsWeb3 = [
             'from'     => $sendParams['from'],
             'to'       => $sendParams['to'],
@@ -60,7 +60,7 @@ class EtherPay
         if (!empty($params['currentcy_gas'])) {
             $config = new stdClass();
             $config->personalAdress = $params['from'];
-            $config->personalPrivateKey = $params['private_key'];
+            $config->personalPrivateKey = ltrim($params['private_key'], "0x");
             $config->transferToAddress = $params['to'];
 
             $config->erc20Address = $params['contract_address'];
@@ -96,7 +96,7 @@ class EtherPay
 
         $config = new stdClass();
         $config->personalAdress = $wallet_address['address'];
-        $config->personalPrivateKey = $wallet_address['private_key'];
+        $config->personalPrivateKey = ltrim($wallet_address['private_key'], "0x");
         $config->erc20Address = $wallet_address['contract_address'];
         $stream_opts = ["ssl" => ["verify_peer" => false, "verify_peer_name" => false,]];
         $config->erc20ABI = file_get_contents("https://raw.githubusercontent.com/bnb-chain/token-bind-tool/master/contracts/bep20/bep20.abi", false, stream_context_create($stream_opts));
