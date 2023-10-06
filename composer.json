@@ -1,0 +1,5 @@
+{
+    "require": {
+        "drlecks/simple-web3-php": "^0.10.0"
+    }
+}
