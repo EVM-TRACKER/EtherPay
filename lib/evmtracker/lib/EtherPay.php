@@ -32,10 +32,12 @@ class EtherPay
 
         // Send from to
         $sweb3->setPersonalData($sendParams['from'], ltrim($sendParams['private_key'], "0x"));
+
         $sendParamsWeb3 = [
             'from'     => $sendParams['from'],
             'to'       => $sendParams['to'],
-            'value'    => Utils::toWei("{$sendParams['value']}", 'ether'),
+            //'value'    => Utils::toWei("{$sendParams['value']}", 'wei'),
+            'value'    => Utils::toWeiFromDecimals("{$sendParams['value']}", (int)$sendParams['currentcy_number_of_decimals']),
             'gasLimit' => self::$gas_limit,
             'nonce'    => $sweb3->personal->getNonce()
         ];
@@ -69,13 +71,15 @@ class EtherPay
             $sweb3->setPersonalData($config->personalAdress, $config->personalPrivateKey);
 
             $contract = new SWeb3_contract($sweb3, $config->erc20Address, $config->erc20ABI);
-            $value = Utils::toWei("{$params['value']}", 'ether');
+            //$value = Utils::toWei("{$params['value']}", 'wei');
+            $value = Utils::toWeiFromDecimals("{$params['value']}", (int)$params['currentcy_number_of_decimals']);
             $extra_data = [
                 'gasLimit' => self::$gas_limit,
                 'nonce'    => $sweb3->personal->getNonce()
             ];
 
             $response = $contract->send('transfer', [$config->transferToAddress, $value], $extra_data);
+
             return $response;
             /*
             if (!empty($response->error)) {
