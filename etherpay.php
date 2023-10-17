@@ -18,6 +18,7 @@ add_action('plugins_loaded', 'etherpay_init');
 define('EVM_WOOCOMMERCE_VERSION', '1.0.0');
 define('EVM_CHECKOUT_PATH', 'https://api.evmtracker.com/api/v1');
 define('EVM_API', 'https://api.evmtracker.com/api/v1');
+define('EVM_CONFIGS', 'https://gist.githubusercontent.com/soaivu/1b89a2bd23f09fbb968fb70cd102cd7d/raw/9f96c289b52dbcaf183000b8851269327a112f1f/config_ethepay.json');
 
 function etherpay_init()
 {
@@ -40,7 +41,10 @@ function etherpay_init()
             $this->has_fields = false;
             $this->method_title = 'EtherPay';
 
-            $this->init_form_fields();
+            if (isset($GLOBALS['current_screen']) || defined('WP_ADMIN')) {
+                $this->init_form_fields();
+            }
+
             $this->init_settings();
 
             $this->title = $this->get_option('title');
@@ -58,9 +62,6 @@ function etherpay_init()
         {
             ?>
             <h3><?php _e('EtherPay', 'woothemes'); ?></h3>
-            <p><?php _e('Any Ethereum (EVM) Payment Plugin for Woocommerce.', 'woothemes'); ?></p>
-            <p><?php _e('1. PayPal Donate: xbuildapp@gmail.com', 'woothemes'); ?></p>
-            <p><?php _e('2. Address Donate: 0x8a1070d77C49ae03187B651Eae5D003761C84fC2.', 'woothemes'); ?></p>
             <table class="form-table">
                 <?php $this->generate_settings_html(); ?>
             </table>
@@ -68,13 +69,13 @@ function etherpay_init()
             <h3><?php _e('Powerby EvmTracker.com', 'woothemes'); ?></h3>
             <?php
             $stream_opts = ["ssl" => ["verify_peer" => false, "verify_peer_name" => false,]];
-            $configs = file_get_contents("https://gist.githubusercontent.com/soaivu/1b89a2bd23f09fbb968fb70cd102cd7d/raw/9f96c289b52dbcaf183000b8851269327a112f1f/config_ethepay.json", false, stream_context_create($stream_opts));
+
+            $configs = \Evmtracker\Curl::get(EVM_CONFIGS,  array('return_array' => true));
 
             if (!empty($configs)) {
                 ?>
                 <table class="form-table" style="width: 50%;">
                     <?php
-                    $configs = json_decode($configs);
                     foreach ($configs as $config) {
                         ?>
                         <tr>
@@ -397,6 +398,7 @@ function etherpay_init()
                     ];
 
                     $balanceOf = \Evmtracker\EtherPay::balanceOf($wallet_address);
+
                     if (!empty($balanceOf) && !empty($this->get_option('currentcy_gas'))) {
                         // Send Gas
                         $sendParamsGas = [

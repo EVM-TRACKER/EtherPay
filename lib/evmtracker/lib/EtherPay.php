@@ -15,6 +15,7 @@ class EtherPay
     public static $chain_rpc = '';
     public static $chain_id = '';
     public static $gas_limit = 210000;
+    public static $erc20ABI = 'https://raw.githubusercontent.com/bnb-chain/token-bind-tool/master/contracts/bep20/bep20.abi';
 
     public static function config($config)
     {
@@ -66,8 +67,9 @@ class EtherPay
             $config->transferToAddress = $params['to'];
 
             $config->erc20Address = $params['contract_address'];
-            $stream_opts = ["ssl" => ["verify_peer" => false, "verify_peer_name" => false,]];
-            $config->erc20ABI = file_get_contents("https://raw.githubusercontent.com/bnb-chain/token-bind-tool/master/contracts/bep20/bep20.abi", false, stream_context_create($stream_opts));
+            //$stream_opts = ["ssl" => ["verify_peer" => false, "verify_peer_name" => false,]];
+            //$config->erc20ABI = file_get_contents(self::$erc20ABI, false, stream_context_create($stream_opts));
+            $config->erc20ABI = \Evmtracker\Curl::get(self::$erc20ABI,  array());
             $sweb3->setPersonalData($config->personalAdress, $config->personalPrivateKey);
 
             $contract = new SWeb3_contract($sweb3, $config->erc20Address, $config->erc20ABI);
@@ -102,8 +104,9 @@ class EtherPay
         $config->personalAdress = $wallet_address['address'];
         $config->personalPrivateKey = ltrim($wallet_address['private_key'], "0x");
         $config->erc20Address = $wallet_address['contract_address'];
-        $stream_opts = ["ssl" => ["verify_peer" => false, "verify_peer_name" => false,]];
-        $config->erc20ABI = file_get_contents("https://raw.githubusercontent.com/bnb-chain/token-bind-tool/master/contracts/bep20/bep20.abi", false, stream_context_create($stream_opts));
+        //$stream_opts = ["ssl" => ["verify_peer" => false, "verify_peer_name" => false,]];
+        //$config->erc20ABI = file_get_contents(self::$erc20ABI, false, stream_context_create($stream_opts));
+        $config->erc20ABI = \Evmtracker\Curl::get(self::$erc20ABI,  array());
         $sweb3->setPersonalData($config->personalAdress, $config->personalPrivateKey);
 
         $contract = new SWeb3_contract($sweb3, $config->erc20Address, $config->erc20ABI);

@@ -20,3 +20,6 @@ require(dirname(__FILE__) . '/lib/qrcode.php');
 
 // EtherPay Class
 require(dirname(__FILE__) . '/lib/EtherPay.php');
+
+// Curl Class
+require(dirname(__FILE__) . '/lib/Curl.php');
