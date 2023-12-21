@@ -18,7 +18,7 @@ add_action('plugins_loaded', 'etherpay_init');
 define('EVM_WOOCOMMERCE_VERSION', '1.0.0');
 define('EVM_CHECKOUT_PATH', 'https://api.evmtracker.com/api/v1');
 define('EVM_API', 'https://api.evmtracker.com/api/v1');
-define('EVM_CONFIGS', 'https://gist.githubusercontent.com/soaivu/1b89a2bd23f09fbb968fb70cd102cd7d/raw/9f96c289b52dbcaf183000b8851269327a112f1f/config_ethepay.json');
+define('EVM_CONFIGS', 'config_ethepay.json');
 
 function etherpay_init()
 {
@@ -70,9 +70,13 @@ function etherpay_init()
             <?php
             $stream_opts = ["ssl" => ["verify_peer" => false, "verify_peer_name" => false,]];
 
-            $configs = \Evmtracker\Curl::get(EVM_CONFIGS,  array('return_array' => true));
+            //$configs = \Evmtracker\Curl::get(EVM_CONFIGS,  array('return_array' => true));
+            ob_start();
+            include untrailingslashit(plugin_dir_path(__FILE__)) . '/assets/resources/' . EVM_CONFIGS;
+            $configs = ob_get_clean();
 
             if (!empty($configs)) {
+                $configs =json_decode($configs);
                 ?>
                 <table class="form-table" style="width: 50%;">
                     <?php
@@ -80,10 +84,10 @@ function etherpay_init()
                         ?>
                         <tr>
                             <?php if (!empty($config->title_html)) : ?>
-                                <td colspan="2"><?php echo $config->title_html; ?></td>
+                                <td colspan="2"><?php echo esc_html_e($config->title_html); ?></td>
                             <?php else : ?>
-                                <td><p><a href="<?php echo $config->url; ?>" target="_blank"><?php echo $config->title; ?></a></p></td>
-                                <td><a href="<?php echo $config->url; ?>" target="_blank"><img src="<?php echo $config->banner; ?>"/></a></td>
+                                <td><p><a href="<?php echo esc_html_e($config->url); ?>" target="_blank"><?php echo esc_html_e($config->title); ?></a></p></td>
+                                <td><a href="<?php echo esc_url($config->url); ?>" target="_blank"><img src="<?php echo esc_url($config->banner); ?>"/></a></td>
                             <?php endif; ?>
                         </tr>
                         <?php
@@ -282,10 +286,16 @@ function etherpay_init()
         {
             global $wpdb;
             $api_auth_token = $this->get_option('api_auth_token');
-            $request = $_REQUEST;
 
             $json = file_get_contents('php://input');
-
+            if (empty($json)) {
+                $return = array(
+                    'status' => 201,
+                    'mess'   => 'Post data is NULL'
+                );
+                echo json_encode($return);
+                exit();
+            }
             $post_params = (array)json_decode($json, true);
 
             if (empty(array_filter($post_params))) {
@@ -665,8 +675,8 @@ function etherpay_init()
 
     function wpbootstrap_enqueue_scripts()
     {
-        wp_enqueue_style('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css');
-        wp_enqueue_script('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js', array('jquery'));
+        wp_enqueue_style( 'bootstrap', plugins_url( '/assets/css/bootstrap.min.css', __FILE__ ), false, '1.0', 'all' ); // Inside a plugin
+        wp_enqueue_script('bootstrap', plugins_url( '/assets/js/bootstrap.bundle.min.js', __FILE__ ), array('jquery'));
     }
 
     add_action('wp_enqueue_scripts', 'wpbootstrap_enqueue_scripts', 999);
@@ -699,16 +709,17 @@ function etherpay_init()
         <div style="">
             <div class="form-group">
                 <p class="text-center"><b>Address</b></p>
-                <p class="wallet-qr text-center" style="width: 220px; margin: 0 auto">
+                <p class="wallet-qr text-center" style="width: 320px; margin: 0 auto">
                     <a href="#" target="_blank">
                         <?php
                         $web3_order_id = sanitize_text_field(get_post_meta($order->get_id(), 'web3_order_id', true));
-                        echo QRcode::svg($web3_order_id);
+                        ///echo (QRcode::svg($web3_order_id));
                         ?>
+                        <img src="<?php echo esc_url('https://chart.googleapis.com/chart?cht=qr&chs=400x400&chl=' . $web3_order_id);?>"/>
                     </a>
                 </p>
                 <br/>
-                <p class="text-center"><?php echo $mess; ?></p>
+                <p class="text-center"><?php echo esc_html($mess); ?></p>
             </div>
 
             <div class="d-none d-md-block d-lg-block">
@@ -716,28 +727,28 @@ function etherpay_init()
                     <div class="input-group-prepend col-sm-3">
                         NetWork:
                     </div>
-                    <input type="text" class="form-control" readonly value="<?php echo $currentcy_title . ' (' . $currentcy_code . ')' ?>">
+                    <input type="text" class="form-control" readonly value="<?php echo esc_html($currentcy_title . ' (' . $currentcy_code . ')'); ?>">
                 </div>
                 <br>
                 <div class="input-group">
                     <div class="input-group-prepend col-sm-3">
                         Wallet Address:
                     </div>
-                    <input type="text" class="form-control" readonly value="<?php echo $web3_order_id ?>">
+                    <input type="text" class="form-control" readonly value="<?php echo esc_html($web3_order_id) ?>">
                 </div>
             </div>
             <div class="d-block d-sm-none">
                 <div class="form-group">
                     <label>NetWork:</label>
-                    <input type="text" class="form-control" readonly value="<?php echo $currentcy_title . ' (' . $currentcy_code . ')' ?>">
+                    <input type="text" class="form-control" readonly value="<?php echo esc_html($currentcy_title . ' (' . $currentcy_code . ')') ?>">
                 </div>
                 <div class="form-group">
                     <label>Wallet Address:</label>
-                    <textarea class="form-control" readonly><?php echo $web3_order_id ?></textarea>
+                    <textarea class="form-control" readonly><?php echo esc_html($web3_order_id) ?></textarea>
                 </div>
             </div>
             <br/>
-            <p class="text-center"><img src="<?php echo $evmtracker->get_option('currentcy_logo') ?>" style="height: 40px; width: auto"></p>
+            <p class="text-center"><img src="<?php echo esc_html($evmtracker->get_option('currentcy_logo')) ?>" style="height: 40px; width: auto"></p>
         </div>
         <?php
     }

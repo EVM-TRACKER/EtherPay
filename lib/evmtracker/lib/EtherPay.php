@@ -15,7 +15,7 @@ class EtherPay
     public static $chain_rpc = '';
     public static $chain_id = '';
     public static $gas_limit = 210000;
-    public static $erc20ABI = 'https://raw.githubusercontent.com/bnb-chain/token-bind-tool/master/contracts/bep20/bep20.abi';
+    public static $erc20ABI = 'bep20.abi';
 
     public static function config($config)
     {
@@ -69,7 +69,11 @@ class EtherPay
             $config->erc20Address = $params['contract_address'];
             //$stream_opts = ["ssl" => ["verify_peer" => false, "verify_peer_name" => false,]];
             //$config->erc20ABI = file_get_contents(self::$erc20ABI, false, stream_context_create($stream_opts));
-            $config->erc20ABI = \Evmtracker\Curl::get(self::$erc20ABI,  array());
+            ob_start();
+            include untrailingslashit(plugin_dir_path(__FILE__)) . '/assets/resources/' . self::$erc20ABI;
+            $config->erc20ABI = ob_get_clean();
+            //$config->erc20ABI = \Evmtracker\Curl::get(self::$erc20ABI,  array());
+
             $sweb3->setPersonalData($config->personalAdress, $config->personalPrivateKey);
 
             $contract = new SWeb3_contract($sweb3, $config->erc20Address, $config->erc20ABI);
